@@ -1,10 +1,14 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { CreateIssueDto, UpdateIssueDto, IssueFilterDto } from './dto/issue.dto';
+import { StorageService } from '../storage/storage.service';
 
 @Injectable()
 export class IssuesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private storageService: StorageService,
+  ) {}
 
   async create(createIssueDto: CreateIssueDto, userId: string) {
     const project = await this.prisma.project.findUnique({
@@ -269,5 +273,95 @@ export class IssuesService {
     });
 
     return { message: 'Watcher removed successfully' };
+  }
+
+  async addAttachment(
+    issueId: string,
+    attachmentData: {
+      filename: string;
+      url: string;
+      key: string;
+      mimeType: string;
+      size: number;
+      uploadedBy: string;
+    },
+  ) {
+    const issue = await this.prisma.issue.findUnique({
+      where: { id: issueId },
+    });
+
+    if (!issue) {
+      throw new NotFoundException('Issue not found');
+    }
+
+    const attachment = await this.prisma.issueAttachment.create({
+      data: {
+        issueId,
+        filename: attachmentData.filename,
+        url: attachmentData.url,
+        mimeType: attachmentData.mimeType,
+        size: attachmentData.size,
+        uploadedBy: attachmentData.uploadedBy,
+      },
+    });
+
+    await this.prisma.activityLog.create({
+      data: {
+        action: 'ATTACHMENT_ADDED',
+        entityType: 'issue',
+        entityId: issueId,
+        userId: attachmentData.uploadedBy,
+        issueId,
+        metadata: {
+          filename: attachmentData.filename,
+          attachmentId: attachment.id,
+        },
+      },
+    });
+
+    return attachment;
+  }
+
+  async deleteAttachment(attachmentId: string, userId: string) {
+    const attachment = await this.prisma.issueAttachment.findUnique({
+      where: { id: attachmentId },
+      include: { issue: true },
+    });
+
+    if (!attachment) {
+      throw new NotFoundException('Attachment not found');
+    }
+
+    // Delete from R2 (extract key from URL if stored as full URL)
+    const key = attachment.url.includes('/') ? attachment.url.split('/').pop() : attachment.url;
+    
+    try {
+      // Try to delete the file from storage
+      if (key) {
+        await this.storageService.deleteFile(`issues/${attachment.issueId}/${key}`);
+      }
+    } catch (error) {
+      console.error('Failed to delete file from storage:', error);
+      // Continue with database deletion even if storage deletion fails
+    }
+
+    await this.prisma.issueAttachment.delete({
+      where: { id: attachmentId },
+    });
+
+    await this.prisma.activityLog.create({
+      data: {
+        action: 'ATTACHMENT_DELETED',
+        entityType: 'issue',
+        entityId: attachment.issueId,
+        userId,
+        issueId: attachment.issueId,
+        metadata: {
+          filename: attachment.filename,
+        },
+      },
+    });
+
+    return { message: 'Attachment deleted successfully' };
   }
 }

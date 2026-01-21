@@ -208,10 +208,10 @@
 ### Attachments
 - [x] Attachment model structure
 - [x] File metadata (name, size, mime type)
-- [ ] Upload files
-- [ ] Download files
-- [ ] Delete attachments
-- [ ] S3 integration
+- [x] Upload files
+- [x] Download files
+- [x] Delete attachments
+- [x] Cloudflare R2 integration
 - [ ] Image preview
 - [ ] File type restrictions
 - [ ] Size limits
@@ -485,7 +485,7 @@ Core features and AI integration ✅
 - [ ] Timeline/Gantt view
 - [ ] Calendar view
 - [ ] Email notifications
-- [ ] File attachments (S3)
+- [ ] File attachments (Cloudflare R2)
 - [ ] Advanced search UI
 
 ### Phase 4 (v1.3) - Q3 2024

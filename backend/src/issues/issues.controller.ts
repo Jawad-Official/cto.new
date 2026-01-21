@@ -9,13 +9,18 @@ import {
   UseGuards,
   Request,
   Query,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
 import { IssuesService } from './issues.service';
 import { CommentsService } from './comments.service';
 import { CreateIssueDto, UpdateIssueDto, IssueFilterDto } from './dto/issue.dto';
 import { CreateCommentDto } from './dto/comment.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { StorageService } from '../storage/storage.service';
 
 @ApiTags('issues')
 @Controller('issues')
@@ -25,6 +30,7 @@ export class IssuesController {
   constructor(
     private issuesService: IssuesService,
     private commentsService: CommentsService,
+    private storageService: StorageService,
   ) {}
 
   @Post()
@@ -107,5 +113,42 @@ export class IssuesController {
   @ApiOperation({ summary: 'Get issue comments' })
   getComments(@Param('id') id: string) {
     return this.commentsService.findAll(id);
+  }
+
+  @Post(':id/attachments')
+  @ApiOperation({ summary: 'Upload attachment to issue' })
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(FileInterceptor('file'))
+  async addAttachment(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+    @Request() req,
+  ) {
+    if (!file) {
+      throw new BadRequestException('No file uploaded');
+    }
+
+    // Upload to R2
+    const uploadResult = await this.storageService.uploadFile(file, `issues/${id}`);
+
+    // Create attachment record
+    return this.issuesService.addAttachment(id, {
+      filename: file.originalname,
+      url: uploadResult.url,
+      key: uploadResult.key,
+      mimeType: file.mimetype,
+      size: file.size,
+      uploadedBy: req.user.userId,
+    });
+  }
+
+  @Delete(':issueId/attachments/:attachmentId')
+  @ApiOperation({ summary: 'Delete attachment from issue' })
+  async deleteAttachment(
+    @Param('issueId') issueId: string,
+    @Param('attachmentId') attachmentId: string,
+    @Request() req,
+  ) {
+    return this.issuesService.deleteAttachment(attachmentId, req.user.userId);
   }
 }

@@ -129,7 +129,12 @@ Required:
 - `OPENROUTER_API_KEY` - OpenRouter API key for AI features
 
 Optional:
-- `AWS_S3_BUCKET` - S3 bucket for attachments
+- `CLOUDFLARE_ACCOUNT_ID` - Cloudflare account ID for R2 storage
+- `CLOUDFLARE_ACCESS_KEY_ID` - R2 access key ID
+- `CLOUDFLARE_SECRET_ACCESS_KEY` - R2 secret access key
+- `CLOUDFLARE_BUCKET_NAME` - R2 bucket name for attachments
+- `CLOUDFLARE_ACCOUNT_URL` - R2 API endpoint URL
+- `CLOUDFLARE_PUBLIC_URL` - Optional custom domain for public access
 - `SMTP_HOST` - Email server for notifications
 - `SLACK_CLIENT_ID` - Slack integration
 - `GITHUB_CLIENT_ID` - GitHub integration

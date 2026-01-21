@@ -18,6 +18,7 @@ import { AnalyticsModule } from './analytics/analytics.module';
 import { AutomationModule } from './automation/automation.module';
 import { PrismaModule } from './common/prisma/prisma.module';
 import { SocketModule } from './socket/socket.module';
+import { StorageModule } from './storage/storage.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { SocketModule } from './socket/socket.module';
     ScheduleModule.forRoot(),
     PrismaModule,
     SocketModule,
+    StorageModule,
     AuthModule,
     WorkspacesModule,
     TeamsModule,

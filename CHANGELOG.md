@@ -284,7 +284,7 @@ A complete, production-ready Linear.app clone with advanced AI capabilities.
 - Vercel (Frontend)
 - Railway/Render (Backend)
 - Managed PostgreSQL with pgvector
-- S3-compatible storage
+- Cloudflare R2 for file storage
 
 ### 📝 Sample Data
 
@@ -304,7 +304,7 @@ A complete, production-ready Linear.app clone with advanced AI capabilities.
 - Database connection
 - JWT secrets
 - OpenRouter.ai API keys
-- AWS S3 credentials
+- Cloudflare R2 credentials
 - SMTP settings
 - Integration keys
 
@@ -332,7 +332,6 @@ A complete, production-ready Linear.app clone with advanced AI capabilities.
 - Kanban board view not implemented
 - Timeline/Gantt view not implemented
 - Roadmap view not implemented
-- S3 file upload implementation incomplete
 - Email notifications require SMTP setup
 - Slack integration requires OAuth configuration
 - GitHub integration requires OAuth configuration
