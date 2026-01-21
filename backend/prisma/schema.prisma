@@ -1,0 +1,524 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [vector]
+}
+
+enum UserRole {
+  ADMIN
+  MEMBER
+  GUEST
+}
+
+enum IssueStatus {
+  BACKLOG
+  TODO
+  IN_PROGRESS
+  IN_REVIEW
+  DONE
+  CANCELLED
+}
+
+enum IssuePriority {
+  URGENT
+  HIGH
+  MEDIUM
+  LOW
+  NONE
+}
+
+enum IssueRelationType {
+  BLOCKS
+  BLOCKED_BY
+  RELATES_TO
+  DUPLICATES
+}
+
+enum NotificationType {
+  ISSUE_ASSIGNED
+  ISSUE_MENTIONED
+  ISSUE_COMMENTED
+  ISSUE_STATUS_CHANGED
+  ISSUE_DUE_SOON
+  CYCLE_STARTED
+  CYCLE_ENDED
+}
+
+enum AutomationTrigger {
+  ISSUE_CREATED
+  ISSUE_UPDATED
+  ISSUE_STATUS_CHANGED
+  ISSUE_ASSIGNED
+  DUE_DATE_APPROACHING
+}
+
+enum AutomationAction {
+  UPDATE_STATUS
+  ASSIGN_USER
+  ADD_LABEL
+  SEND_NOTIFICATION
+  UPDATE_PRIORITY
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  name          String
+  password      String?
+  avatar        String?
+  provider      String?
+  providerId    String?
+  emailVerified Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  workspaces          WorkspaceUser[]
+  teams               TeamMember[]
+  assignedIssues      Issue[]               @relation("AssignedIssues")
+  createdIssues       Issue[]               @relation("CreatedIssues")
+  comments            IssueComment[]
+  notifications       Notification[]
+  activities          ActivityLog[]
+  issueWatchers       IssueWatcher[]
+  createdWorkspaces   Workspace[]
+  apiKeys             ApiKey[]
+  notificationSettings NotificationSetting[]
+
+  @@index([email])
+}
+
+model Workspace {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  description String?
+  icon        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   String
+  creator     User     @relation(fields: [createdBy], references: [id])
+
+  users         WorkspaceUser[]
+  teams         Team[]
+  projects      Project[]
+  labels        Label[]
+  customFields  CustomField[]
+  cycles        Cycle[]
+  webhooks      Webhook[]
+  integrations  Integration[]
+  settings      WorkspaceSettings?
+  automations   AutomationRule[]
+
+  @@index([slug])
+  @@index([createdBy])
+}
+
+model WorkspaceUser {
+  id          String   @id @default(uuid())
+  workspaceId String
+  userId      String
+  role        UserRole @default(MEMBER)
+  joinedAt    DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+  @@index([workspaceId])
+  @@index([userId])
+}
+
+model WorkspaceSettings {
+  id                    String  @id @default(uuid())
+  workspaceId           String  @unique
+  allowGuestAccess      Boolean @default(false)
+  requireApproval       Boolean @default(true)
+  defaultIssueStatus    String  @default("BACKLOG")
+  enableAI              Boolean @default(true)
+  enableNotifications   Boolean @default(true)
+  enableSlack           Boolean @default(false)
+  enableGitHub          Boolean @default(false)
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model Team {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  icon        String?
+  workspaceId String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  members   TeamMember[]
+  projects  Project[]
+
+  @@index([workspaceId])
+}
+
+model TeamMember {
+  id       String   @id @default(uuid())
+  teamId   String
+  userId   String
+  role     UserRole @default(MEMBER)
+  joinedAt DateTime @default(now())
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@index([teamId])
+  @@index([userId])
+}
+
+model Project {
+  id          String   @id @default(uuid())
+  name        String
+  key         String
+  description String?
+  color       String   @default("#6B7280")
+  icon        String?
+  workspaceId String
+  teamId      String?
+  leadId      String?
+  visibility  String   @default("TEAM")
+  archived    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  team      Team?     @relation(fields: [teamId], references: [id])
+  issues    Issue[]
+  views     View[]
+
+  @@unique([workspaceId, key])
+  @@index([workspaceId])
+  @@index([teamId])
+}
+
+model Issue {
+  id          String        @id @default(uuid())
+  title       String
+  description String?
+  status      IssueStatus   @default(BACKLOG)
+  priority    IssuePriority @default(NONE)
+  estimate    Int?
+  projectId   String
+  assigneeId  String?
+  creatorId   String
+  cycleId     String?
+  parentId    String?
+  number      Int
+  dueDate     DateTime?
+  startDate   DateTime?
+  completedAt DateTime?
+  archivedAt  DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  project          Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignee         User?             @relation("AssignedIssues", fields: [assigneeId], references: [id])
+  creator          User              @relation("CreatedIssues", fields: [creatorId], references: [id])
+  cycle            Cycle?            @relation(fields: [cycleId], references: [id])
+  parent           Issue?            @relation("SubIssues", fields: [parentId], references: [id])
+  subIssues        Issue[]           @relation("SubIssues")
+  comments         IssueComment[]
+  attachments      IssueAttachment[]
+  labels           IssueLabel[]
+  customFieldValues CustomFieldValue[]
+  outgoingRelations IssueRelation[]  @relation("OutgoingRelations")
+  incomingRelations IssueRelation[]  @relation("IncomingRelations")
+  activities       ActivityLog[]
+  watchers         IssueWatcher[]
+  embedding        Unsupported("vector(1536)")?
+
+  @@unique([projectId, number])
+  @@index([projectId])
+  @@index([assigneeId])
+  @@index([creatorId])
+  @@index([cycleId])
+  @@index([status])
+  @@index([priority])
+  @@index([createdAt])
+}
+
+model IssueWatcher {
+  id        String   @id @default(uuid())
+  issueId   String
+  userId    String
+  createdAt DateTime @default(now())
+
+  issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([issueId, userId])
+  @@index([issueId])
+  @@index([userId])
+}
+
+model IssueComment {
+  id        String   @id @default(uuid())
+  content   String
+  issueId   String
+  userId    String
+  parentId  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  issue   Issue          @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent  IssueComment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies IssueComment[] @relation("CommentReplies")
+
+  @@index([issueId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model IssueAttachment {
+  id        String   @id @default(uuid())
+  filename  String
+  url       String
+  mimeType  String
+  size      Int
+  issueId   String
+  uploadedBy String
+  createdAt DateTime @default(now())
+
+  issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  @@index([issueId])
+}
+
+model IssueRelation {
+  id          String            @id @default(uuid())
+  type        IssueRelationType
+  sourceId    String
+  targetId    String
+  createdAt   DateTime          @default(now())
+
+  source Issue @relation("OutgoingRelations", fields: [sourceId], references: [id], onDelete: Cascade)
+  target Issue @relation("IncomingRelations", fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@unique([sourceId, targetId, type])
+  @@index([sourceId])
+  @@index([targetId])
+}
+
+model Label {
+  id          String   @id @default(uuid())
+  name        String
+  color       String
+  description String?
+  workspaceId String
+  createdAt   DateTime @default(now())
+
+  workspace Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  issues    IssueLabel[]
+
+  @@unique([workspaceId, name])
+  @@index([workspaceId])
+}
+
+model IssueLabel {
+  id        String   @id @default(uuid())
+  issueId   String
+  labelId   String
+  createdAt DateTime @default(now())
+
+  issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  label Label @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@unique([issueId, labelId])
+  @@index([issueId])
+  @@index([labelId])
+}
+
+model CustomField {
+  id          String   @id @default(uuid())
+  name        String
+  type        String
+  options     Json?
+  workspaceId String
+  createdAt   DateTime @default(now())
+
+  workspace Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  values    CustomFieldValue[]
+
+  @@unique([workspaceId, name])
+  @@index([workspaceId])
+}
+
+model CustomFieldValue {
+  id            String   @id @default(uuid())
+  issueId       String
+  customFieldId String
+  value         Json
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  issue       Issue       @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  customField CustomField @relation(fields: [customFieldId], references: [id], onDelete: Cascade)
+
+  @@unique([issueId, customFieldId])
+  @@index([issueId])
+  @@index([customFieldId])
+}
+
+model Cycle {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  workspaceId String
+  startDate   DateTime
+  endDate     DateTime
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  issues    Issue[]
+
+  @@index([workspaceId])
+  @@index([startDate, endDate])
+}
+
+model View {
+  id          String   @id @default(uuid())
+  name        String
+  type        String
+  filters     Json
+  sorting     Json?
+  grouping    Json?
+  projectId   String
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+}
+
+model AutomationRule {
+  id          String             @id @default(uuid())
+  name        String
+  description String?
+  trigger     AutomationTrigger
+  conditions  Json
+  actions     Json
+  enabled     Boolean            @default(true)
+  workspaceId String
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([enabled])
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  type      NotificationType
+  title     String
+  content   String
+  userId    String
+  read      Boolean          @default(false)
+  metadata  Json?
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([read])
+  @@index([createdAt])
+}
+
+model NotificationSetting {
+  id               String  @id @default(uuid())
+  userId           String
+  emailEnabled     Boolean @default(true)
+  inAppEnabled     Boolean @default(true)
+  mentionsOnly     Boolean @default(false)
+  dailyDigest      Boolean @default(false)
+  weeklyDigest     Boolean @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId])
+}
+
+model ActivityLog {
+  id          String   @id @default(uuid())
+  action      String
+  entityType  String
+  entityId    String
+  userId      String
+  metadata    Json?
+  issueId     String?
+  createdAt   DateTime @default(now())
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  issue Issue? @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@index([issueId])
+  @@index([createdAt])
+}
+
+model Webhook {
+  id          String   @id @default(uuid())
+  name        String
+  url         String
+  secret      String
+  events      String[]
+  enabled     Boolean  @default(true)
+  workspaceId String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([enabled])
+}
+
+model Integration {
+  id          String   @id @default(uuid())
+  type        String
+  name        String
+  config      Json
+  enabled     Boolean  @default(true)
+  workspaceId String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, type])
+  @@index([workspaceId])
+}
+
+model ApiKey {
+  id        String   @id @default(uuid())
+  name      String
+  key       String   @unique
+  userId    String
+  expiresAt DateTime?
+  createdAt DateTime @default(now())
+  lastUsed  DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([key])
+}
