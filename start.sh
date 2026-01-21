@@ -9,7 +9,7 @@ echo ""
 if [ ! -f ".env" ]; then
     echo "⚠️  Creating .env file from .env.example..."
     cp .env.example .env
-    echo "⚠️  Please edit .env and add your OPENAI_API_KEY before continuing"
+    echo "⚠️  Please edit .env and add your OPENROUTER_API_KEY before continuing"
     exit 1
 fi
 

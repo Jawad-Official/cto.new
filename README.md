@@ -23,6 +23,7 @@ A complete, production-ready Linear.app clone with advanced AI capabilities for 
 - **Semantic Search**: Natural language queries with vector similarity
 - **Duplicate Detection**: ML-powered duplicate issue identification
 - **Context-Aware Suggestions**: Intelligent recommendations based on workspace patterns
+- **Powered by OpenRouter.ai**: Access to multiple AI models through a single API
 
 ## 🛠 Tech Stack
 
@@ -30,16 +31,16 @@ A complete, production-ready Linear.app clone with advanced AI capabilities for 
 - **Backend**: NestJS, TypeScript
 - **Database**: PostgreSQL with Prisma ORM
 - **Real-time**: Socket.io
-- **AI**: OpenAI GPT-4, pgvector for embeddings
+- **AI**: OpenRouter.ai (access to multiple AI models including GPT-4), pgvector for embeddings
 - **Auth**: NextAuth.js
-- **Storage**: S3-compatible storage for attachments
+- **Storage**: S3-compatible storage for attachments (Cloudflare R2 compatible)
 
 ## 📋 Prerequisites
 
 - Node.js 18+
 - PostgreSQL 15+ with pgvector extension
 - Docker & Docker Compose (optional)
-- OpenAI API key
+- OpenRouter.ai API key
 
 ## 🏗 Project Structure
 
@@ -76,7 +77,7 @@ cd linear-clone
 
 # Set up environment variables
 cp .env.example .env
-# Edit .env and add your OpenAI API key and other credentials
+# Edit .env and add your OpenRouter API key and other credentials
 
 # Start all services
 docker-compose up -d
@@ -157,7 +158,7 @@ npm run dev
 ```env
 DATABASE_URL="postgresql://user:password@localhost:5432/linear_clone"
 JWT_SECRET="your-jwt-secret"
-OPENAI_API_KEY="sk-..."
+OPENROUTER_API_KEY="sk-or-..."
 AWS_S3_BUCKET="linear-attachments"
 AWS_ACCESS_KEY_ID="your-access-key"
 AWS_SECRET_ACCESS_KEY="your-secret-key"
@@ -289,7 +290,7 @@ MIT License - see LICENSE file for details
 
 - Inspired by [Linear.app](https://linear.app)
 - Built with modern web technologies
-- AI powered by OpenAI GPT-4
+- AI powered by OpenRouter.ai
 
 ## 📧 Support
 

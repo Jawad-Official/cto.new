@@ -362,16 +362,16 @@ docker system df
 
 ## AI Features Issues
 
-### OpenAI API key invalid
+### OpenRouter.ai API key invalid
 
 **Problem**: `401: Incorrect API key provided`
 
 **Solution**:
 ```bash
 # Check key is set
-cat backend/.env | grep OPENAI_API_KEY
+cat backend/.env | grep OPENROUTER_API_KEY
 
-# Verify key at: https://platform.openai.com/api-keys
+# Verify key at: https://openrouter.ai/keys
 
 # Update .env and restart
 docker-compose restart backend
@@ -383,8 +383,8 @@ docker-compose restart backend
 
 **Solution**:
 - Wait a moment before retrying
-- Check usage: https://platform.openai.com/usage
-- Upgrade OpenAI plan if needed
+- Check usage: https://openrouter.ai/usage
+- Check provider rate limits (varies by provider)
 - Implement request queueing
 
 ### Embedding generation slow
@@ -434,9 +434,11 @@ CREATE INDEX ON "Issue" USING ivfflat (embedding vector_cosine_ops);
 **Solution**:
 - Ensure workspace has recent issues for context
 - Check prompt engineering in `ai.service.ts`
-- Verify OpenAI model is GPT-4 (not GPT-3.5)
+- Verify OpenRouter.ai model is configured correctly (e.g., `openai/gpt-4`)
+- Try different models available on OpenRouter.ai
 - Increase temperature for more creative responses
 - Add more context to prompts
+- Check OpenRouter.ai documentation: https://openrouter.ai/docs
 
 ---
 

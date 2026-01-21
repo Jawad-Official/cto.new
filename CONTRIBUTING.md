@@ -44,7 +44,7 @@ Thank you for your interest in contributing! This document provides guidelines a
 - Node.js 18+
 - Docker Desktop
 - PostgreSQL 15+ with pgvector
-- OpenAI API key
+- OpenRouter.ai API key
 
 ### Local Development
 
