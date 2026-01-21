@@ -4,7 +4,7 @@ This document details all AI-powered features in the Linear Clone application.
 
 ## Overview
 
-The application integrates OpenAI's GPT-4 and Ada-002 embedding models, along with PostgreSQL's pgvector extension, to provide intelligent assistance throughout the issue management workflow.
+The application integrates OpenRouter.ai to access multiple AI models (including OpenAI's GPT-4 and Ada-002), along with PostgreSQL's pgvector extension, to provide intelligent assistance throughout the issue management workflow. OpenRouter.ai provides a unified API to access various AI model providers.
 
 ## 1. AI-Powered Issue Generation
 
@@ -14,7 +14,7 @@ Automatically generate comprehensive issue descriptions from a brief title.
 ### How It Works
 1. User provides a simple title (e.g., "Add user authentication")
 2. System analyzes recent issues in the workspace for context
-3. GPT-4 generates:
+3. OpenRouter.ai (using openai/gpt-4 model) generates:
    - Detailed description with markdown formatting
    - Acceptance criteria checklist
    - Suggested priority level
@@ -77,7 +77,7 @@ const generateIssue = async (title: string, workspaceId: string) => {
 Automatically categorize issues by analyzing title and description to suggest priority, labels, and estimates.
 
 ### How It Works
-1. Analyzes issue content using GPT-4
+1. Analyzes issue content using OpenRouter.ai (openai/gpt-4 model)
 2. Examines patterns in similar workspace issues
 3. Suggests appropriate metadata
 4. Provides confidence score for each suggestion
@@ -114,9 +114,9 @@ Search issues using natural language queries with AI-powered understanding of co
 
 ### How It Works
 1. **Embedding Generation**:
-   - Every issue gets a 1536-dimension vector embedding
-   - Generated using OpenAI's `text-embedding-ada-002` model
-   - Stored in PostgreSQL using pgvector extension
+    - Every issue gets a 1536-dimension vector embedding
+    - Generated using OpenRouter.ai's `openai/text-embedding-ada-002` model
+    - Stored in PostgreSQL using pgvector extension
 
 2. **Search Process**:
    - User query converted to embedding
@@ -227,7 +227,7 @@ const checkDuplicates = async () => {
 Convert natural language search queries into structured filters.
 
 ### How It Works
-Uses pattern matching and GPT-4 to parse queries like:
+Uses pattern matching and OpenRouter.ai to parse queries like:
 - "Show me all critical bugs assigned to me from last week"
 - "High priority features in progress"
 - "Urgent issues without assignee"
@@ -269,20 +269,45 @@ GET /search/natural-language?q=show%20me%20urgent%20bugs&workspaceId=workspace-i
 - **Indexing**: Use IVFFlat or HNSW indexes for faster search
 - **Scaling**: Embeddings can be cached and reused
 
-### GPT-4 API Usage
-- **Rate Limits**: 10,000 requests/min (varies by tier)
-- **Cost**: $0.03/1K tokens (input), $0.06/1K tokens (output)
-- **Optimization**: 
+### OpenRouter.ai API Usage
+- **Rate Limits**: Varies by provider and tier
+- **Cost**: Competitive pricing across multiple AI providers
+- **Optimization**:
   - Cache common responses
   - Use context windows efficiently
   - Fallback to simpler models for basic tasks
+  - Switch between providers as needed
 
 ## Configuration
 
 ### Environment Variables
 ```env
-OPENAI_API_KEY=sk-your-api-key-here
+OPENROUTER_API_KEY=sk-or-your-api-key-here
 ```
+
+### Getting an API Key
+1. Visit https://openrouter.ai/keys
+2. Sign up or log in
+3. Create a new API key
+4. Add the key to your environment variables
+
+### Available Models
+
+OpenRouter.ai provides access to multiple AI providers. The application currently uses:
+
+**Chat Completions:**
+- `openai/gpt-4` - For issue generation and categorization
+- Alternative: `anthropic/claude-3`, `google/gemini-pro`, etc.
+
+**Embeddings:**
+- `openai/text-embedding-ada-002` - For semantic search
+- Alternative: `cohere/embed-english-v3.0`, etc.
+
+To change models, update the `model` parameter in:
+- `backend/src/ai/ai.service.ts` (chat completions)
+- `backend/src/ai/embeddings.service.ts` (embeddings)
+
+See https://openrouter.ai/models for all available models.
 
 ### Workspace Settings
 Each workspace can configure:
@@ -328,7 +353,8 @@ If AI services fail:
 1. **Caching**: Cache embeddings and common AI responses
 2. **Rate Limiting**: Implement user-level rate limits for AI endpoints
 3. **Monitoring**: Track AI service latency and error rates
-4. **Cost Control**: Set budget alerts for OpenAI API usage
+4. **Cost Control**: Set budget alerts for OpenRouter.ai API usage
+5. **Model Selection**: Choose appropriate models for different tasks (e.g., use cheaper models for simple categorization)
 
 ## Future Enhancements
 
@@ -348,22 +374,22 @@ If AI services fail:
 ## Privacy & Security
 
 ### Data Handling
-- Issue content sent to OpenAI API for processing
-- No training on user data (OpenAI policy)
+- Issue content sent to OpenRouter.ai API for processing
+- No training on user data (varies by provider - check individual provider policies)
 - Embeddings stored encrypted in database
 - AI features can be disabled per workspace
 
 ### Compliance
-- GDPR compliant (user data not retained by OpenAI)
+- GDPR compliant (check individual provider policies for data retention)
 - SOC 2 compliant infrastructure
-- Data residency options available
+- Data residency options available with certain providers
 
 ## Troubleshooting
 
 ### Common Issues
 
 **Embeddings not generating**
-- Check OpenAI API key
+- Check OpenRouter.ai API key
 - Verify pgvector extension is installed
 - Check database permissions
 
@@ -403,9 +429,10 @@ ORDER BY date DESC;
 ## Support
 
 For AI feature issues:
-1. Check OpenAI service status
+1. Check OpenRouter.ai service status (https://status.openrouter.ai/)
 2. Review API key permissions
 3. Verify pgvector installation
 4. Check application logs for detailed errors
+5. Visit https://openrouter.ai/docs for API documentation
 
 For questions or feature requests, open an issue on GitHub.

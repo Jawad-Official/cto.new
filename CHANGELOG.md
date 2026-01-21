@@ -111,7 +111,7 @@ A complete, production-ready Linear.app clone with advanced AI capabilities.
 - Provide confidence scores
 
 **Semantic Search**
-- Vector embeddings using OpenAI Ada-002
+- Vector embeddings using OpenRouter.ai (openai/text-embedding-ada-002)
 - PostgreSQL pgvector integration
 - Natural language queries
 - Similarity-based search
@@ -258,7 +258,7 @@ A complete, production-ready Linear.app clone with advanced AI capabilities.
 **Backend Major Dependencies**
 - NestJS 10.3.0
 - Prisma 5.8.0
-- OpenAI 4.24.1
+- Axios 1.6.5 (for OpenRouter.ai API)
 - Socket.io 4.6.0
 - Passport JWT
 - bcrypt 5.1.1
@@ -303,7 +303,7 @@ A complete, production-ready Linear.app clone with advanced AI capabilities.
 **Environment Variables**
 - Database connection
 - JWT secrets
-- OpenAI API keys
+- OpenRouter.ai API keys
 - AWS S3 credentials
 - SMTP settings
 - Integration keys
@@ -378,7 +378,7 @@ A complete, production-ready Linear.app clone with advanced AI capabilities.
 
 - Inspired by [Linear.app](https://linear.app)
 - Built with modern web technologies
-- Powered by OpenAI GPT-4
+- Powered by OpenRouter.ai
 - Community feedback and contributions
 
 ---

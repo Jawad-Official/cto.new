@@ -5,7 +5,7 @@ Get the Linear Clone running in under 5 minutes!
 ## Prerequisites
 
 - Docker Desktop installed and running
-- OpenAI API key ([Get one here](https://platform.openai.com/api-keys))
+- OpenRouter.ai API key ([Get one here](https://openrouter.ai/keys))
 
 ## Option 1: Automated Setup (Recommended)
 
@@ -14,9 +14,9 @@ Get the Linear Clone running in under 5 minutes!
 git clone <repo-url>
 cd linear-clone
 
-# 2. Copy environment file and add your OpenAI key
+# 2. Copy environment file and add your OpenRouter.ai key
 cp .env.example .env
-# Edit .env and add: OPENAI_API_KEY=sk-your-key-here
+# Edit .env and add: OPENROUTER_API_KEY=sk-or-your-key-here
 
 # 3. Run the start script
 ./start.sh
@@ -32,8 +32,8 @@ cp .env.example .env
 cp backend/.env.example backend/.env
 cp frontend/.env.example frontend/.env.local
 
-# Edit backend/.env and add your OpenAI API key
-# OPENAI_API_KEY=sk-your-key-here
+# Edit backend/.env and add your OpenRouter.ai API key
+# OPENROUTER_API_KEY=sk-or-your-key-here
 
 # 2. Start services
 docker-compose up -d
@@ -138,9 +138,10 @@ cat frontend/.env.local
 ```
 
 ### AI features not working
-1. Check OpenAI API key in `backend/.env`
-2. Verify you have credits: https://platform.openai.com/usage
+1. Check OpenRouter.ai API key in `backend/.env`
+2. Verify you have credits: https://openrouter.ai/credits
 3. Check backend logs: `docker-compose logs backend`
+4. Verify API key at: https://openrouter.ai/keys
 
 ## Next Steps
 

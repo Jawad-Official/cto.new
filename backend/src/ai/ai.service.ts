@@ -1,18 +1,28 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import OpenAI from 'openai';
+import axios, { AxiosInstance } from 'axios';
 import { PrismaService } from '../common/prisma/prisma.service';
 
 @Injectable()
 export class AiService {
-  private openai: OpenAI;
+  private httpClient: AxiosInstance;
+  private openrouterApiKey: string;
+  private apiBaseUrl: string;
 
   constructor(
     private configService: ConfigService,
     private prisma: PrismaService,
   ) {
-    this.openai = new OpenAI({
-      apiKey: this.configService.get<string>('OPENAI_API_KEY'),
+    this.openrouterApiKey = this.configService.get<string>('OPENROUTER_API_KEY') || '';
+    this.apiBaseUrl = 'https://api.openrouter.ai/api/v1';
+    this.httpClient = axios.create({
+      baseURL: this.apiBaseUrl,
+      headers: {
+        'Authorization': `Bearer ${this.openrouterApiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://linear-clone.com',
+        'X-Title': 'Linear Clone',
+      },
     });
   }
 
@@ -60,8 +70,8 @@ Return the response as valid JSON with this structure:
 }`;
 
     try {
-      const completion = await this.openai.chat.completions.create({
-        model: 'gpt-4',
+      const response = await this.httpClient.post('/chat/completions', {
+        model: 'openai/gpt-4',
         messages: [
           {
             role: 'system',
@@ -74,7 +84,7 @@ Return the response as valid JSON with this structure:
         max_tokens: 1000,
       });
 
-      const content = completion.choices[0].message.content;
+      const content = response.data.choices[0].message.content;
       const parsedContent = JSON.parse(content);
 
       return {
@@ -83,7 +93,7 @@ Return the response as valid JSON with this structure:
         confidence: 0.85,
       };
     } catch (error) {
-      console.error('OpenAI API error:', error);
+      console.error('OpenRouter API error:', error);
       return this.generateFallbackIssueDetails(title);
     }
   }
@@ -126,8 +136,8 @@ Return as JSON:
 }`;
 
     try {
-      const completion = await this.openai.chat.completions.create({
-        model: 'gpt-4',
+      const response = await this.httpClient.post('/chat/completions', {
+        model: 'openai/gpt-4',
         messages: [
           { role: 'system', content: 'You are an expert at categorizing software issues.' },
           { role: 'user', content: prompt },
@@ -136,7 +146,7 @@ Return as JSON:
         max_tokens: 200,
       });
 
-      const content = completion.choices[0].message.content;
+      const content = response.data.choices[0].message.content;
       return JSON.parse(content);
     } catch (error) {
       console.error('Categorization error:', error);
@@ -167,12 +177,12 @@ Return as JSON:
 
   async generateEmbedding(text: string): Promise<number[]> {
     try {
-      const response = await this.openai.embeddings.create({
-        model: 'text-embedding-ada-002',
+      const response = await this.httpClient.post('/embeddings', {
+        model: 'openai/text-embedding-ada-002',
         input: text,
       });
 
-      return response.data[0].embedding;
+      return response.data.data[0].embedding;
     } catch (error) {
       console.error('Embedding generation error:', error);
       return [];

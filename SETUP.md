@@ -4,19 +4,19 @@
 
 1. **Prerequisites**
    - Docker and Docker Compose installed
-   - OpenAI API key
+   - OpenRouter.ai API key
 
 2. **Setup**
-   ```bash
-   # Clone and navigate to project
-   cd linear-clone
+    ```bash
+    # Clone and navigate to project
+    cd linear-clone
 
-   # Create environment files
-   cp backend/.env.example backend/.env
-   cp frontend/.env.example frontend/.env.local
+    # Create environment files
+    cp backend/.env.example backend/.env
+    cp frontend/.env.example frontend/.env.local
 
-   # Edit backend/.env and add your OpenAI API key
-   OPENAI_API_KEY=sk-your-api-key-here
+    # Edit backend/.env and add your OpenRouter API key
+    OPENROUTER_API_KEY=sk-or-your-api-key-here
 
    # Start all services
    docker-compose up -d
@@ -54,7 +54,7 @@ cp .env.example .env
 
 # Edit .env with your credentials
 # DATABASE_URL=postgresql://user:password@localhost:5432/linear_clone
-# OPENAI_API_KEY=sk-your-api-key
+# OPENROUTER_API_KEY=sk-or-your-api-key
 
 # Ensure PostgreSQL is running with pgvector extension
 createdb linear_clone
@@ -126,7 +126,7 @@ CREATE EXTENSION vector;
 Required:
 - `DATABASE_URL` - PostgreSQL connection string with pgvector
 - `JWT_SECRET` - Secret for JWT token generation
-- `OPENAI_API_KEY` - OpenAI API key for AI features
+- `OPENROUTER_API_KEY` - OpenRouter API key for AI features
 
 Optional:
 - `AWS_S3_BUCKET` - S3 bucket for attachments
@@ -241,10 +241,11 @@ pg_isready
 psql -c "SELECT * FROM pg_extension WHERE extname = 'vector';"
 ```
 
-### OpenAI API Issues
+### OpenRouter API Issues
 - Verify API key is correct
 - Check API rate limits
 - Ensure sufficient credits
+- Visit https://openrouter.ai/keys to get your API key
 
 ### Port Already in Use
 ```bash
@@ -262,7 +263,7 @@ linear-clone/
 ├── backend/          # NestJS API
 │   ├── src/
 │   │   ├── auth/     # Authentication
-│   │   ├── ai/       # AI features (OpenAI)
+│   │   ├── ai/       # AI features (OpenRouter.ai)
 │   │   ├── issues/   # Issue management
 │   │   ├── search/   # Search & semantic search
 │   │   └── ...
@@ -280,7 +281,7 @@ linear-clone/
 - NestJS + TypeScript
 - PostgreSQL + Prisma ORM
 - pgvector for embeddings
-- OpenAI GPT-4 & Ada-002
+- OpenRouter.ai (access to multiple AI models including GPT-4 & Ada-002)
 - Socket.io for real-time
 - JWT authentication
 

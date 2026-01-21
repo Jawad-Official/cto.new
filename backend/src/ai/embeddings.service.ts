@@ -1,18 +1,28 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import OpenAI from 'openai';
+import axios, { AxiosInstance } from 'axios';
 import { PrismaService } from '../common/prisma/prisma.service';
 
 @Injectable()
 export class EmbeddingsService {
-  private openai: OpenAI;
+  private httpClient: AxiosInstance;
+  private openrouterApiKey: string;
+  private apiBaseUrl: string;
 
   constructor(
     private configService: ConfigService,
     private prisma: PrismaService,
   ) {
-    this.openai = new OpenAI({
-      apiKey: this.configService.get<string>('OPENAI_API_KEY'),
+    this.openrouterApiKey = this.configService.get<string>('OPENROUTER_API_KEY') || '';
+    this.apiBaseUrl = 'https://api.openrouter.ai/api/v1';
+    this.httpClient = axios.create({
+      baseURL: this.apiBaseUrl,
+      headers: {
+        'Authorization': `Bearer ${this.openrouterApiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://linear-clone.com',
+        'X-Title': 'Linear Clone',
+      },
     });
   }
 
@@ -39,12 +49,12 @@ export class EmbeddingsService {
 
   async generateEmbedding(text: string): Promise<number[]> {
     try {
-      const response = await this.openai.embeddings.create({
-        model: 'text-embedding-ada-002',
+      const response = await this.httpClient.post('/embeddings', {
+        model: 'openai/text-embedding-ada-002',
         input: text.substring(0, 8000),
       });
 
-      return response.data[0].embedding;
+      return response.data.data[0].embedding;
     } catch (error) {
       console.error('Embedding generation error:', error);
       return [];
