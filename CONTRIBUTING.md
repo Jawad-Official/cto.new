@@ -348,7 +348,7 @@ npm run test:e2e
 - [ ] Kanban board view
 - [ ] Timeline/Gantt view
 - [ ] Roadmap view
-- [ ] File upload to S3
+- [ ] File upload to Cloudflare R2
 - [ ] Email notifications
 - [ ] Slack integration
 - [ ] GitHub integration

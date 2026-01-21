@@ -33,7 +33,7 @@ A complete, production-ready Linear.app clone with advanced AI capabilities for 
 - **Real-time**: Socket.io
 - **AI**: OpenRouter.ai (access to multiple AI models including GPT-4), pgvector for embeddings
 - **Auth**: NextAuth.js
-- **Storage**: S3-compatible storage for attachments (Cloudflare R2 compatible)
+- **Storage**: Cloudflare R2 for file attachments and media
 
 ## 📋 Prerequisites
 
@@ -41,6 +41,7 @@ A complete, production-ready Linear.app clone with advanced AI capabilities for 
 - PostgreSQL 15+ with pgvector extension
 - Docker & Docker Compose (optional)
 - OpenRouter.ai API key
+- Cloudflare R2 account (for file attachments)
 
 ## 🏗 Project Structure
 
@@ -159,9 +160,12 @@ npm run dev
 DATABASE_URL="postgresql://user:password@localhost:5432/linear_clone"
 JWT_SECRET="your-jwt-secret"
 OPENROUTER_API_KEY="sk-or-..."
-AWS_S3_BUCKET="linear-attachments"
-AWS_ACCESS_KEY_ID="your-access-key"
-AWS_SECRET_ACCESS_KEY="your-secret-key"
+CLOUDFLARE_ACCOUNT_ID="your-cloudflare-account-id"
+CLOUDFLARE_ACCESS_KEY_ID="your-r2-access-key-id"
+CLOUDFLARE_SECRET_ACCESS_KEY="your-r2-secret-access-key"
+CLOUDFLARE_BUCKET_NAME="linear-attachments"
+CLOUDFLARE_ACCOUNT_URL="https://<account-id>.r2.cloudflarestorage.com"
+CLOUDFLARE_PUBLIC_URL="https://your-custom-domain.com"
 SMTP_HOST="smtp.gmail.com"
 SMTP_PORT="587"
 SMTP_USER="your-email@gmail.com"
@@ -265,9 +269,11 @@ vercel deploy --prod
 ```bash
 cd backend
 # Configure via Railway/Render dashboard
-# Set environment variables
+# Set environment variables including Cloudflare R2 credentials
 # Deploy from GitHub
 ```
+
+**Note**: For Cloudflare R2 storage setup, see [R2_SETUP.md](./R2_SETUP.md) or [STORAGE_MIGRATION.md](./STORAGE_MIGRATION.md) if migrating from AWS S3.
 
 ### Database (Supabase/Railway)
 
@@ -291,6 +297,7 @@ MIT License - see LICENSE file for details
 - Inspired by [Linear.app](https://linear.app)
 - Built with modern web technologies
 - AI powered by OpenRouter.ai
+- Storage powered by Cloudflare R2
 
 ## 📧 Support
 
@@ -301,3 +308,5 @@ For support, email support@linear-clone.com or open an issue.
 - [Documentation](https://docs.linear-clone.com)
 - [API Reference](https://api.linear-clone.com)
 - [Roadmap](https://github.com/your-org/linear-clone/projects/1)
+- [Cloudflare R2 Setup](./R2_SETUP.md)
+- [Storage Migration Guide](./STORAGE_MIGRATION.md)

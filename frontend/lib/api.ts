@@ -83,3 +83,31 @@ export const searchApi = {
   parseNaturalLanguage: (query: string, workspaceId: string) =>
     api.get(`/search/natural-language?q=${query}&workspaceId=${workspaceId}`),
 };
+
+export const storageApi = {
+  uploadFile: (file: File, folder?: string) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const params = folder ? { folder } : {};
+    return api.post('/storage/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      params,
+    });
+  },
+  deleteFile: (key: string) => api.post('/storage/delete', { key }),
+  getSignedUrl: (key: string, expiresIn?: number) =>
+    api.get('/storage/signed-url', { params: { key, expiresIn } }),
+  getFileMetadata: (key: string) => api.get(`/storage/metadata/${key}`),
+};
+
+export const attachmentsApi = {
+  uploadToIssue: (issueId: string, file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post(`/issues/${issueId}/attachments`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+  deleteFromIssue: (issueId: string, attachmentId: string) =>
+    api.delete(`/issues/${issueId}/attachments/${attachmentId}`),
+};
